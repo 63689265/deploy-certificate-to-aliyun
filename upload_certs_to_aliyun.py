@@ -38,7 +38,8 @@ def upload_certificate(client, domain_name, cert_path, key_path):
     request.set_CertRegion('cn-hangzhou')
 
     response = client.do_action_with_exception(request)
-    print(str(response, encoding='utf-8'))
+    # 仅输出成功状态，避免将完整 API 响应（含证书 ID 等元数据）泄露到日志
+    print(f"Certificate uploaded successfully for CDN domain: {domain_name}")
 
 def main():
     access_key_id = get_env_var('ALIYUN_ACCESS_KEY_ID')

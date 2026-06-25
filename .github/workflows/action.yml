@@ -1,11 +1,13 @@
 name: Auto Renew and Deploy SSL Certificates
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:  # 支持手动触发
   schedule:
     - cron: '0 0 20 */2 *' # 每两个月的第二十天执行一次
+
+# 最小权限原则：仅授予读取仓库代码的权限
+permissions:
+  contents: read
 
 jobs:
   renew-deploy-cert:
@@ -13,20 +15,23 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4     # 升级到 v4（v2 已停止维护，存在安全风险）
 
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v5  # 升级到 v5（v2 已停止维护）
       with:
-        python-version: '3.8'
+        python-version: '3.12'      # 升级到 3.12（3.8 已于 2024年10月 EOL）
 
     - name: Install acme.sh
       env:
-        EMAIL: ${{ secrets.EMAIL}}
+        EMAIL: ${{ secrets.EMAIL }}
       run: |
         sudo apt-get update
         sudo apt-get install -y socat
-        curl https://get.acme.sh | sh -s email="${EMAIL}"
+        # 先下载脚本再执行，避免 curl | sh 管道注入风险
+        wget -O /tmp/install-acme.sh https://get.acme.sh
+        bash /tmp/install-acme.sh --email "${EMAIL}"
+        rm -f /tmp/install-acme.sh
 
     - name: Prepare acme.sh credentials
       run: |
@@ -60,7 +65,7 @@ jobs:
         DOMAINS: ${{ secrets.DOMAINS }}
         # 设置阿里云cdn域名，一般是三级域名，例如cdn.example.com，需要跟上面的DOMAINS对应，否则会设置错误
         ALIYUN_CDN_DOMAINS: ${{ secrets.ALIYUN_CDN_DOMAINS }}
-  
+
       run: python upload_certs_to_aliyun.py
 
     - name: Clean up

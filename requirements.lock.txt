@@ -1,0 +1,13 @@
+# Generated lock file for reproducible builds.
+# Pins all dependencies to known-good versions.
+# Usage: pip install -r requirements.lock.txt
+#
+# To add hash verification, run on a trusted system:
+#   pip download -d /tmp/deps -r requirements.lock.txt
+#   pip hash -a sha256 /tmp/deps/*
+# Then add --hash=sha256:... after each package.
+#
+aliyun-python-sdk-core==2.16.0 \
+    --hash=sha256:651caad597eb39d4fad6cf85133dffe92837d53bdf62db9d8f37dab6508bb8f9
+aliyun-python-sdk-cdn==3.8.8 \
+    --hash=sha256:bd3e77dd1bd1e165a9179fd2d650354e7a971a2fdafb5b9f391718fd17353bc1
