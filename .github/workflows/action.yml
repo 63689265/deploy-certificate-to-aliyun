@@ -26,12 +26,15 @@ jobs:
       env:
         EMAIL: ${{ secrets.EMAIL }}
       run: |
+        set -e
         sudo apt-get update
         sudo apt-get install -y socat
-        # 先下载脚本再执行，避免 curl | sh 管道注入风险
-        wget -O /tmp/install-acme.sh https://get.acme.sh
-        bash /tmp/install-acme.sh --email "${EMAIL}"
-        rm -f /tmp/install-acme.sh
+        # 使用 git clone 安装，相比 wget|bash 更可靠且带完整性校验
+        git clone --depth 1 https://github.com/acmesh-official/acme.sh.git ~/.acme.sh
+        cd ~/.acme.sh
+        ./acme.sh --install --email "${EMAIL}"
+        # 验证安装成功
+        ~/.acme.sh/acme.sh --version
 
     - name: Prepare acme.sh credentials
       run: |
