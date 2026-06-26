@@ -36,7 +36,16 @@
    > ⚠️ FullAccess 策略授予了对应服务的**完全管理权限**，远超实际所需。生产环境强烈建议使用方式一的自定义策略。
 4. 为这个用户创建一个 **AccessKey (AK/SK)**，并妥善保存
 
-### 第三步：在 GitHub 仓库中设置秘密变量
+### 第三步：获取 DNSPod API Token
+
+> ⚠️ 注意：这里需要的是 **DNSPod 旧版 API Token**，不是腾讯云 API 密钥（SecretId/SecretKey）。两者是不同的凭据体系。
+
+1. 登录 [DNSPod 控制台](https://console.dnspod.cn/)
+2. 进入「**账号中心**」→「**API 密钥**」
+3. 点击「**创建 API Token**」，填写名称后创建
+4. 保存生成的 **ID** 和 **Token**（Token 只显示一次，请立即复制保存）
+
+### 第四步：在 GitHub 仓库中设置秘密变量
 
 1. 进入您 **Fork 出来的仓库** 的页面
 2. 点击顶部的 **"Settings"** 选项卡
@@ -47,17 +56,19 @@
 | :------------------------- | :------------------------------------------------- | :----------------------------- |
 | `ALIYUN_ACCESS_KEY_ID`     | 阿里云 AccessKey ID                                | `LTAI5txxxxxxxxxxxxx`          |
 | `ALIYUN_ACCESS_KEY_SECRET` | 阿里云 AccessKey Secret                            | `h6J9Zxxxxxxxxxxxxxxxxxxxx`    |
+| `DNSPOD_ID`                | DNSPod API Token ID（用于 DNS 验证域名所有权）     | `12345`                        |
+| `DNSPOD_KEY`               | DNSPod API Token（与 ID 配套使用）                 | `abcdef1234567890abcdef`       |
 | `DOMAINS`                  | 主域名，多个用**英文逗号**隔开                     | `example.com,test.org`         |
 | `ALIYUN_CDN_DOMAINS`       | CDN域名，与DOMAINS顺序对应，多个用**英文逗号**隔开 | `cdn.example.com,img.test.org` |
 | `EMAIL`                    | 接收通知的邮箱地址                                 | `your-email@example.com`       |
 
-### 第四步：触发工作流运行
+### 第五步：触发工作流运行
 
 1. 在您 Fork 的仓库页面，点击 **"Actions"** 选项卡
 2. 在左侧选择 **"Auto Renew and Deploy SSL Certificates"** 工作流
 3. 点击 **"Run workflow"** 下拉按钮，选择目标分支后点击 **"Run workflow"** 手动触发首次运行
 
-### 第五步：查看执行结果
+### 第六步：查看执行结果
 
 1. 工作流运行完成后，点击仓库顶部的 **"Actions"** 选项卡
 2. 查看工作流运行状态和详细日志
@@ -73,6 +84,7 @@
 - **分隔符**：多个域名之间使用**英文逗号**分隔，不要使用空格或其他符号
 - **首次运行**：建议手动触发一次以确保配置无误
 - **费用**：Let's Encrypt 证书本身是免费的，但关联的阿里云CDN、DNS等服务可能会产生正常费用
+- **CA 选择**：本项目使用 Let's Encrypt 作为证书颁发机构。acme.sh v3 默认使用 ZeroSSL，但 ZeroSSL 的验证流程较慢且偶发超时问题，因此在 workflow 中通过 `--server letsencrypt` 显式指定了 Let's Encrypt
 
 ## 🔧 技术支持
 
