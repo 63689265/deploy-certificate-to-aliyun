@@ -47,15 +47,25 @@ def main():
     domains = [d.strip() for d in get_env_var('DOMAINS').split(',')]
     cdn_domains = [d.strip() for d in get_env_var('ALIYUN_CDN_DOMAINS').split(',')]
 
-    if len(domains) != len(cdn_domains):
+    # 支持两种模式：
+    # 1. 1个主域名 + N个CDN域名 → 同一张泛域名证书部署到所有CDN域名
+    # 2. N个主域名 + N个CDN域名 → 一一对应部署
+    if len(domains) == 1:
+        # 单域名模式：同一张证书部署到所有 CDN 域名
+        domain = domains[0]
+        pairing = [(domain, cdn) for cdn in cdn_domains]
+    elif len(domains) == len(cdn_domains):
+        pairing = list(zip(domains, cdn_domains))
+    else:
         raise ValueError(
-            f"DOMAINS count ({len(domains)}) does not match ALIYUN_CDN_DOMAINS count ({len(cdn_domains)})"
+            f"DOMAINS count ({len(domains)}) must be 1 (shared cert) "
+            f"or match ALIYUN_CDN_DOMAINS count ({len(cdn_domains)})"
         )
 
     client = AcsClient(access_key_id, access_key_secret, 'cn-hangzhou')
     failed = []
 
-    for domain, cdn_domain in zip(domains, cdn_domains):
+    for domain, cdn_domain in pairing:
         cert_path = f'~/certs/{domain}/fullchain.pem'
         key_path = f'~/certs/{domain}/privkey.pem'
         try:
