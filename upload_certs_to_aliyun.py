@@ -44,15 +44,28 @@ def upload_certificate(client, domain_name, cert_path, key_path):
 def main():
     access_key_id = get_env_var('ALIYUN_ACCESS_KEY_ID')
     access_key_secret = get_env_var('ALIYUN_ACCESS_KEY_SECRET')
-    domains = get_env_var('DOMAINS').split(',')
-    cdn_domains = get_env_var('ALIYUN_CDN_DOMAINS').split(',')
+    domains = [d.strip() for d in get_env_var('DOMAINS').split(',')]
+    cdn_domains = [d.strip() for d in get_env_var('ALIYUN_CDN_DOMAINS').split(',')]
+
+    if len(domains) != len(cdn_domains):
+        raise ValueError(
+            f"DOMAINS count ({len(domains)}) does not match ALIYUN_CDN_DOMAINS count ({len(cdn_domains)})"
+        )
 
     client = AcsClient(access_key_id, access_key_secret, 'cn-hangzhou')
+    failed = []
 
     for domain, cdn_domain in zip(domains, cdn_domains):
         cert_path = f'~/certs/{domain}/fullchain.pem'
         key_path = f'~/certs/{domain}/privkey.pem'
-        upload_certificate(client, cdn_domain, cert_path, key_path)
+        try:
+            upload_certificate(client, cdn_domain, cert_path, key_path)
+        except Exception as e:
+            print(f"[ERROR] Failed to upload cert for {cdn_domain}: {e}")
+            failed.append(cdn_domain)
+
+    if failed:
+        raise RuntimeError(f"Upload failed for {len(failed)} domain(s): {', '.join(failed)}")
 
 if __name__ == "__main__":
     main()
